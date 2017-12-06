@@ -1,6 +1,6 @@
 import gym
 
-env = gym.make("BreakoutDeterministic-v4")
+env = gym.make("MountainCarContinuous-v0")
 
 def main():
     max_episodes = 50
