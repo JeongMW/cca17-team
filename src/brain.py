@@ -5,6 +5,7 @@ import keras.backend as K
 from collections import deque
 from keras.layers import Dense
 from keras.models import Sequential
+from keras.optimizers import Adam
 
 class DQNAgent:
     def __init__(self, state_size, action_size):
@@ -28,8 +29,16 @@ class DQNAgent:
         self.update_target_model()
 
     def build_model(self):
-        # TODO
-        print('Build a model for the learning agent')
+        model = Sequential()
+        model.add(Dense(16, input_dim=self.state_size, activation='relu', kernel_initializer='glorot_normal'))
+        model.add(Dense(16, input_dim=self.state_size, activation='relu', kernel_initializer='glorot_normal'))
+        model.add(Dense(self.action_size, activation='linear', kernel_initializer='glorot_normal'))
+
+        model.summary()  # Print information about the model
+
+        opt = Adam(lr=self.learning_rate)
+        model.compile(loss='mse', optimizer=opt, metrics=['accuracy'])
+        return model
 
     def update_target_model(self):
         # TODO
