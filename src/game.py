@@ -7,7 +7,7 @@ from brain import DQNAgent
 class Game:
     def __init__(self):
         # TODO: implement additional features. (The code below can be modified.)
-        self.env = gym.make("MountainCarContinuous-v0")
+        self.env = gym.make("CartPole-v0")
         self.agent = DQNAgent()
 
     def run_games(self, max_episodes):
