@@ -17,6 +17,7 @@ class DQNAgent:
         self.discount_factor = 0.99
         self.learning_rate = 0.1
         self.batch_size = 64
+        self.train_start_cutoff = 1000
 
         # Replay memory
         self.memory = deque(maxlen=2000)
