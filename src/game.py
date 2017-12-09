@@ -14,20 +14,50 @@ class Game:
 
         self.agent = DQNAgent(state_size, action_size)
 
-    def run_games(self, max_episodes):
+    def train_games(self, max_episodes):
         # TODO: Implement logics to make agent learn.
 
-        for i in range(max_episodes):
-            print("=========== EPISODE %d ==========" % (i + 1))
+        for episode in range(max_episodes):
+            print("=========== EPISODE %d ==========" % (episode + 1))
 
             state = self.env.reset()
             done = False
+            step_count = 0
 
-            while not done:
-                self.env.render()
-                action = self.env.action_space.sample()
+            while not done and step_count<10000:
+                action = self.agent.get_action(state, episode)
                 next_state, reward, done, _ = self.env.step(action)
+
+                if done:
+                    reward = -100
+
+                # Append samples for replay
+                self.agent.append_sample(state, action, reward, next_state, done)
+
+                next_state = state
+                step_count += 1
+
+            # Game is done
+            print("episode: {} / steps: {}".format(episode+1, step_count))
+
+            # Learn by every 10 episodes
+            if(episode%10 == 1):
+                self.agent.train_model()
+                self.agent.update_target_model()
+
+    def run_games(self, max_episodes):
+        for i in range(max_episodes):
+            state = self.env.reset()
+            done = False
+
+            while not done and steps<10000:
+                self.env.render()
+                action = self.agent.get_action(state, 1000000000) # We need get_action w/o random noise
+                next_state, reward, done, _ = self.env,step(action)
+                state = next_state
+            # Game is done
+            print("episodes: {} / steps: {}".format(episode, step_count))
 
 if  __name__ == "__main__":
     game = Game()
-    game.run_games(1)
+    game.train_games(100)
