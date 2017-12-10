@@ -25,6 +25,67 @@ class Game:
 
         self.agent = DQNAgent(state_size, action_size)
 
+    def show_training(self):
+        render = False
+        show_limit = [0, 100, 200, 400, 1600]
+        show_index = 0
+        show_count = 3
+        no_count = 2
+
+        for episode in range(10000):
+            state = self.env.reset()
+            done = False
+            step_count = 0
+
+            while not done:
+                if render:
+                    self.env.render()
+
+                action = self.agent.get_action(state, episode)
+                next_state, reward, done, _ = self.env.step(action)
+
+                if done:
+                    reward = -100
+
+                # Append samples for replay
+                self.agent.append_sample(state, action, reward, next_state, done)
+
+                state = next_state
+                step_count += 1
+
+            # Game is done
+            print("episode: {} / steps: {}".format(episode+1, step_count))
+
+            if(step_count > show_limit[show_index]):
+                if(render == True):
+                    show_count -= 1
+                    if(show_count == 0):
+                        show_index += 1
+                        show_count = 3
+                        render = False
+                        if(show_index == len(show_limit)):
+                            return    
+                else:
+                    no_count -= 1
+                    if(no_count == 0):
+                        render = True
+                        no_count = 2
+                        print("============================================")
+                        print(" Steps passed over {}. We will show 3 times".format(show_limit[show_index]))
+                        print("============================================")
+                        self.env.reset()
+                        self.env.render()
+                        input()
+            else:
+                no_count = 2
+
+            if(len(self.agent.memory) >= self.agent.train_start_cutoff) and episode%10==9:
+                for _ in range(50):
+                    self.agent.train_model()
+                self.agent.update_target_model()
+
+
+
     def train_games(self, max_episodes, moniter = False):
         render = False
 
@@ -107,4 +168,4 @@ class Game:
 
 if  __name__ == "__main__":
     game = Game()
-    game.train_games(2000, True)
+    game.show_training()
