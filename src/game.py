@@ -26,7 +26,8 @@ class Game:
         self.agent = DQNAgent(state_size, action_size)
 
     def train_games(self, max_episodes, render = False):
-
+        avg_steps = 10
+        sum_steps = 90 // for first loop
         for episode in range(max_episodes):
 
             state = self.env.reset()
@@ -37,7 +38,7 @@ class Game:
                 if render:
                     self.env.render()
 
-                action = self.agent.get_action(state, episode)
+                action = self.agent.get_action_new(state, avg_steps)
                 next_state, reward, done, _ = self.env.step(action)
 
                 if done:
@@ -50,11 +51,15 @@ class Game:
                 step_count += 1
 
             # Game is done
-            if(len(self.agent.memory) >= self.agent.train_start_cutoff) and episode%10==1:
-                for _ in range(50):
-                    self.agent.train_model()
             print("episode: {} / steps: {}".format(episode+1, step_count))
-            self.agent.update_target_model()
+            sum_steps += step_count
+            if episode%10==0:
+                avg_steps = sum_steps//10
+                sum_steps = 0
+                if(len(self.agent.memory) >= self.agent.train_start_cutoff) and episode%10==1:
+                    for _ in range(50):
+                        self.agent.train_model()
+                    self.agent.update_target_model()
 
     def teach_games(self, max_episodes):
         for episode in range(max_episodes):

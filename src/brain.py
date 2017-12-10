@@ -1,6 +1,7 @@
 import sys, random
 import numpy as np
 import keras.backend as K
+from math import log
 
 from collections import deque
 from keras.layers import Dense
@@ -31,8 +32,8 @@ class DQNAgent:
 
     def build_model(self):
         model = Sequential()
-        model.add(Dense(16, input_dim=self.state_size, activation='relu', kernel_initializer='glorot_normal'))
-        model.add(Dense(16, input_dim=self.state_size, activation='relu', kernel_initializer='glorot_normal'))
+        model.add(Dense(6, input_dim=self.state_size, activation='relu', kernel_initializer='glorot_normal'))
+        model.add(Dense(6, input_dim=self.state_size, activation='relu', kernel_initializer='glorot_normal'))
         model.add(Dense(self.action_size, activation='linear', kernel_initializer='glorot_normal'))
 
         model.summary()  # Print information about the model
@@ -51,6 +52,11 @@ class DQNAgent:
             return np.argmax(self.main_model.predict(state) + np.random.randn(1, self.action_size) / ((episode + 1) / 5))
         else:
             return np.argmax(self.main_model.predict(state))
+
+    def get_action_new(self, state, steps):
+        state = np.reshape(state, (-1, self.state_size))
+        return np.argmax(self.main_model.predict(state) + np.random.randn(1, self.action_size) / (log(steps)*20))
+
 
     def append_sample(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
