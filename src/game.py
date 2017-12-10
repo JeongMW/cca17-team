@@ -2,6 +2,8 @@ import os, sys
 import numpy as np
 
 from brain import DQNAgent
+from keyboard_input import _Getch
+getch = _Getch()
 
 import gym
 from gym.envs.registration import register
@@ -16,7 +18,6 @@ register(
 
 class Game:
     def __init__(self):
-        # TODO: implement additional features. (The code below can be modified.)
         self.env = gym.make("CartPole-v2")
 
         state_size = self.env.observation_space.shape[0]
@@ -24,17 +25,18 @@ class Game:
 
         self.agent = DQNAgent(state_size, action_size)
 
-    def train_games(self, max_episodes):
-        # TODO: Implement logics to make agent learn.
+    def train_games(self, max_episodes, render = False):
 
         for episode in range(max_episodes):
-#            print("=========== EPISODE %d ==========" % (episode + 1))
 
             state = self.env.reset()
             done = False
             step_count = 0
 
-            while not done and step_count < 10000:
+            while not done:
+                if render:
+                    self.env.render()
+
                 action = self.agent.get_action(state, episode)
                 next_state, reward, done, _ = self.env.step(action)
 
@@ -43,23 +45,56 @@ class Game:
 
                 # Append samples for replay
                 self.agent.append_sample(state, action, reward, next_state, done)
-                if(len(self.agent.memory) >= self.agent.train_start_cutoff):
-                    self.agent.train_model()
 
                 state = next_state
                 step_count += 1
 
             # Game is done
+            if(len(self.agent.memory) >= self.agent.train_start_cutoff) and episode%10==1:
+                for _ in range(50):
+                    self.agent.train_model()
             print("episode: {} / steps: {}".format(episode+1, step_count))
             self.agent.update_target_model()
 
+    def teach_games(self, max_episodes):
+        for episode in range(max_episodes):
+
+            state = self.env.reset()
+            done = False
+            step_count = 0
+
+            while not done and step_count < 10000:
+                self.env.render()
+                key_input = {
+                        'j': 0,
+                        'l': 1 }
+
+                action = key_input[getch()]
+                next_state, reward, done, _ = self.env.step(action)
+
+                if done:
+                    reward = -100
+
+                # Append samples for replay
+                self.agent.append_sample(state, action, reward, next_state, done)
+
+                state = next_state
+                step_count += 1
+            print("episode: {} / steps: {}".format(episode+1, step_count))
+
+            # Teach is done then learn hard
+        for i in range(500):
+            for j in range(50):
+                self.agent.train_model()
+            self.agent.update_target_model()
+            if i%50==0: print("learning")
 
     def run_games(self, max_episodes):
         for episode in range(max_episodes):
             state = self.env.reset()
             done = False
 
-            while not done and steps<10000:
+            while not done:
                 self.env.render()
                 action = self.agent.get_action(state, episode, False)  # Get action without random noise
                 next_state, reward, done, _ = self.env.step(action)
@@ -69,4 +104,4 @@ class Game:
 
 if  __name__ == "__main__":
     game = Game()
-    game.train_games(50000)
+    game.train_games(1500)
