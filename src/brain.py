@@ -17,7 +17,7 @@ class DQNAgent:
         self.discount_factor = 0.99
         self.learning_rate = 0.1
         self.batch_size = 64
-        self.train_start_cutoff = 1000
+        self.train_start_cutoff = 1000  # When samples are filled up to this cutoff, start training.
 
         # Replay memory
         self.memory = deque(maxlen=2000)
@@ -45,10 +45,11 @@ class DQNAgent:
         self.target_model.set_weights(self.main_model.get_weights())
 
     def get_action(self, state, episode):
+        state = np.reshape(state, (-1, self.state_size, self.action_size))
         return np.argmax(self.main_model.predict(state) + np.random.randn(1, self.action_size) / (episode / 5 + 1))
 
     def append_sample(self, state, action, reward, next_state, done):
-        self.memory.append(state, action, reward, next_state, done)
+        self.memory.append((state, action, reward, next_state, done))
 
     def train_model(self):
         mini_batch = random.sample(self.memory, self.batch_size)
@@ -73,5 +74,5 @@ class DQNAgent:
             else:
                 Q_values[i][actions[i]] = rewards[i] + self.discount_factor * np.amax(target_Q[i])
 
-        self.main_model.fit(states, Q_values, batch_size=self.batch_size, epoch=1, verbose=0)
+        self.main_model.fit(states, Q_values, batch_size=self.batch_size, epochs=1, verbose=0)
 
