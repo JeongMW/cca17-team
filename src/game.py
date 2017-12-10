@@ -24,7 +24,7 @@ class Game:
             done = False
             step_count = 0
 
-            while not done and step_count<10000:
+            while not done and step_count < 10000:
                 action = self.agent.get_action(state, episode)
                 next_state, reward, done, _ = self.env.step(action)
 
@@ -46,14 +46,14 @@ class Game:
                 self.agent.update_target_model()
 
     def run_games(self, max_episodes):
-        for i in range(max_episodes):
+        for episode in range(max_episodes):
             state = self.env.reset()
             done = False
 
             while not done and steps<10000:
                 self.env.render()
-                action = self.agent.get_action(state, 1000000000) # We need get_action w/o random noise
-                next_state, reward, done, _ = self.env,step(action)
+                action = self.agent.get_action(state, episode, False)  # Get action without random noise
+                next_state, reward, done, _ = self.env.step(action)
                 state = next_state
             # Game is done
             print("episodes: {} / steps: {}".format(episode, step_count))
