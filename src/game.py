@@ -1,8 +1,18 @@
 import os, sys
-import gym
 import numpy as np
 
 from brain import DQNAgent
+
+import gym
+from gym.envs.registration import register
+
+register(
+    id = 'CartPole-v2',
+    entry_point = 'gym.envs.classic_control:CartPoleEnv',
+    tags = {'wrapper_config.TimeLimit.max_episode_steps': 10000},
+    reward_threshold = 10000.0,
+)
+
 
 class Game:
     def __init__(self):
