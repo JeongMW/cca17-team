@@ -28,7 +28,7 @@ class Game:
         # TODO: Implement logics to make agent learn.
 
         for episode in range(max_episodes):
-            print("=========== EPISODE %d ==========" % (episode + 1))
+#            print("=========== EPISODE %d ==========" % (episode + 1))
 
             state = self.env.reset()
             done = False
@@ -51,7 +51,7 @@ class Game:
             print("episode: {} / steps: {}".format(episode+1, step_count))
 
             # Learn by every 10 episodes
-            if(episode%10 == 1):
+            if(len(self.agent.memory) >= self.agent.train_start_cutoff):
                 self.agent.train_model()
                 self.agent.update_target_model()
 
@@ -70,4 +70,4 @@ class Game:
 
 if  __name__ == "__main__":
     game = Game()
-    game.train_games(100)
+    game.train_games(50000)
