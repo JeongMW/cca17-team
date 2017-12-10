@@ -7,7 +7,7 @@ from brain import DQNAgent
 class Game:
     def __init__(self):
         # TODO: implement additional features. (The code below can be modified.)
-        self.env = gym.make("CartPole-v1")
+        self.env = gym.make("CartPole-v2")
 
         state_size = self.env.observation_space.shape[0]
         action_size = self.env.action_space.n
