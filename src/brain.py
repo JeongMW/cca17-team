@@ -45,7 +45,7 @@ class DQNAgent:
         self.target_model.set_weights(self.main_model.get_weights())
 
     def get_action(self, state, episode, train_mode=True):
-        state = np.reshape(state, (-1, self.state_size, self.action_size))
+        state = np.reshape(state, (-1, self.state_size))
 
         if train_mode:
             return np.argmax(self.main_model.predict(state) + np.random.randn(1, self.action_size) / ((episode + 1) / 5))
