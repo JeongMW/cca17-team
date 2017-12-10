@@ -43,17 +43,16 @@ class Game:
 
                 # Append samples for replay
                 self.agent.append_sample(state, action, reward, next_state, done)
+                if(len(self.agent.memory) >= self.agent.train_start_cutoff):
+                    self.agent.train_model()
 
-                next_state = state
+                state = next_state
                 step_count += 1
 
             # Game is done
             print("episode: {} / steps: {}".format(episode+1, step_count))
+            self.agent.update_target_model()
 
-            # Learn by every 10 episodes
-            if(len(self.agent.memory) >= self.agent.train_start_cutoff):
-                self.agent.train_model()
-                self.agent.update_target_model()
 
     def run_games(self, max_episodes):
         for episode in range(max_episodes):
