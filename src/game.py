@@ -26,7 +26,7 @@ class Game:
 
         # Parameters for showing training
         self.render = False
-        self._show_cutoff_list = [0, 100, 200, 400, 1600]
+        self._show_cutoff_list = [0, 100, 400, 1600]
         self._show_cutoff_idx = 0
         self._show_cntdown = 2
         self._show_cnt = 3
@@ -42,11 +42,14 @@ class Game:
             if show_training and step_cnt > self._show_cutoff_list[self._show_cutoff_idx]:
                 self._show_game()
 
-                if self._show_cutoff_idx == 5:
+                if self._show_cutoff_idx == len(self._show_cutoff_list):
                     break
 
             if len(self.agent.memory) >= self.agent.train_start_cutoff and (episode + 1) % 10 == 0:
                 self._train()
+
+        # Show final result
+        self.env.render()
 
     def _play_game(self, episode):
         state = self.env.reset()
@@ -131,27 +134,33 @@ class Game:
                 step_count += 1
             print("episode: {} / steps: {}".format(episode+1, step_count))
 
-            # Teach is done then learn hard
+        # Teach is done then learn hard
         for i in range(500):
             for j in range(50):
                 self.agent.train_model()
+
             self.agent.update_target_model()
-            if i%50==0: print("learning")
+
+            if i % 50 == 0:
+                print("learning")
 
     def run_games(self, max_episodes):
         for episode in range(max_episodes):
             state = self.env.reset()
             done = False
+            step_cnt = 0
 
             while not done:
                 self.env.render()
                 action = self.agent.get_action(state, episode, False)  # Get action without random noise
                 next_state, reward, done, _ = self.env.step(action)
                 state = next_state
+                step_cnt += 1
+
             # Game is done
-            print("episodes: {} / steps: {}".format(episode, step_count))
+            print("episodes: {} / steps: {}".format(episode, step_cnt))
 
 
 if __name__ == "__main__":
     game = Game()
-    game.learn_games(10000, True)
+    game.learn_games(2000, False)
