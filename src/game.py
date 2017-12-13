@@ -1,13 +1,12 @@
 import os, sys
 import numpy as np
+import gym
 
 from brain import DQNAgent
 from keyboard_input import _Getch
-getch = _Getch()
-
-import gym
 from gym.envs.registration import register
 
+getch = _Getch()
 register(
     id = 'CartPole-v2',
     entry_point = 'gym.envs.classic_control:CartPoleEnv',
@@ -25,100 +24,86 @@ class Game:
 
         self.agent = DQNAgent(state_size, action_size)
 
-    def show_training(self):
-        render = False
-        show_limit = [0, 100, 200, 400, 1600]
-        show_index = 0
-        show_count = 3
-        no_count = 2
+        # Parameters for showing training
+        self.render = False
+        self._show_cutoff_list = [0, 100, 200, 400, 1600]
+        self._show_cutoff_idx = 0
+        self._show_cntdown = 2
+        self._show_cnt = 3
 
-        for episode in range(10000):
-            state = self.env.reset()
-            done = False
-            step_count = 0
-
-            while not done:
-                if render:
-                    self.env.render()
-
-                action = self.agent.get_action(state, episode)
-                next_state, reward, done, _ = self.env.step(action)
-
-                if done:
-                    reward = -100
-
-                # Append samples for replay
-                self.agent.append_sample(state, action, reward, next_state, done)
-
-                state = next_state
-                step_count += 1
-
-            # Game is done
-            print("episode: {} / steps: {}".format(episode+1, step_count))
-
-            if(step_count > show_limit[show_index]):
-                if(render == True):
-                    show_count -= 1
-                    if(show_count == 0):
-                        show_index += 1
-                        show_count = 3
-                        render = False
-                        if(show_index == len(show_limit)):
-                            return    
-                else:
-                    no_count -= 1
-                    if(no_count == 0):
-                        render = True
-                        no_count = 2
-                        print("============================================")
-                        print(" Steps passed over {}. We will show 3 times".format(show_limit[show_index]))
-                        print("============================================")
-                        self.env.reset()
-                        self.env.render()
-                        input()
-            else:
-                no_count = 2
-
-            if(len(self.agent.memory) >= self.agent.train_start_cutoff) and episode%10==9:
-                for _ in range(50):
-                    self.agent.train_model()
-                self.agent.update_target_model()
-
-
-
-    def train_games(self, max_episodes, moniter = False):
-        render = False
+    def learn_games(self, max_episodes, show_training=False):
 
         for episode in range(max_episodes):
-
-            state = self.env.reset()
-            done = False
-            step_count = 0
-
-            while not done:
-                if render:
-                    self.env.render()
-
-                action = self.agent.get_action(state, episode)
-                next_state, reward, done, _ = self.env.step(action)
-
-                if done:
-                    reward = -100
-
-                # Append samples for replay
-                self.agent.append_sample(state, action, reward, next_state, done)
-
-                state = next_state
-                step_count += 1
+            step_cnt = self._play_game(episode)
 
             # Game is done
-            print("episode: {} / steps: {}".format(episode+1, step_count))
-            if(len(self.agent.memory) >= self.agent.train_start_cutoff) and episode%10==9:
-                if moniter:
-                    render = (input("Want to render? y/[n]")=='y')
-                for _ in range(50):
-                    self.agent.train_model()
-                self.agent.update_target_model()
+            print("episode: {} / steps: {}".format(episode + 1, step_cnt))
+
+            if show_training and step_cnt > self._show_cutoff_list[self._show_cutoff_idx]:
+                self._show_game()
+
+                if self._show_cutoff_idx == 5:
+                    break
+
+            if len(self.agent.memory) >= self.agent.train_start_cutoff and (episode + 1) % 10 == 0:
+                self._train()
+
+    def _play_game(self, episode):
+        state = self.env.reset()
+        done = False
+        step_cnt = 0
+
+        while not done:
+            if self.render:
+                self.env.render()
+
+            action = self.agent.get_action(state, episode)
+            next_state, reward, done, _ = self.env.step(action)
+
+            if done:
+                reward = -100
+
+            # Append samples for replay
+            self.agent.append_sample(state, action, reward, next_state, done)
+
+            state = next_state
+            step_cnt += 1
+
+        return step_cnt
+
+    def _show_game(self):
+        show_cutoff = self._show_cutoff_list[self._show_cutoff_idx]
+
+        if self.render:
+            self._show_cnt -= 1
+
+            if self._show_cnt == 0:
+                self.render = False
+                self._show_cutoff_idx += 1
+                self._show_cnt = 3
+
+        else:
+            self._show_cntdown -= 1
+
+            if self._show_cntdown == 0:
+                self.render = True
+                self._show_cntdown = 2
+
+                print("============================================")
+                print(" Steps passed over {}. We will self._show 3 times".format(show_cutoff))
+                print(" Please press ENTER.")
+                print("============================================")
+
+                self.env.reset()
+                self.env.render()
+
+                input()
+
+    def _train(self):
+        for _ in range(50):
+            self.agent.train_model()
+
+        self.agent.update_target_model()
 
     def teach_games(self, max_episodes):
         for episode in range(max_episodes):
@@ -166,6 +151,7 @@ class Game:
             # Game is done
             print("episodes: {} / steps: {}".format(episode, step_count))
 
-if  __name__ == "__main__":
+
+if __name__ == "__main__":
     game = Game()
-    game.show_training()
+    game.learn_games(10000, True)

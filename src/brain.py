@@ -45,6 +45,7 @@ class DQNAgent:
         self.target_model.set_weights(self.main_model.get_weights())
 
     def get_action(self, state, episode, train_mode=True):
+        # Explore & Exploit
         state = np.reshape(state, (-1, self.state_size))
 
         if train_mode:
