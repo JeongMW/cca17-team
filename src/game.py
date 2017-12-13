@@ -17,7 +17,9 @@ register(
 
 class Game:
     def __init__(self):
-        self.env = gym.make("CartPole-v2")
+        env = gym.make("CartPole-v2")
+        self.env = gym.wrappers.Monitor(env, '../results', force=True,
+                                        video_callable=lambda episode: episode % 200 == 0)
 
         state_size = self.env.observation_space.shape[0]
         action_size = self.env.action_space.n
@@ -26,6 +28,7 @@ class Game:
 
         # Parameters for showing training
         self.render = False
+
         self._show_cutoff_list = [0, 100, 400, 1600]
         self._show_cutoff_idx = 0
         self._show_cntdown = 2
@@ -48,7 +51,9 @@ class Game:
             if len(self.agent.memory) >= self.agent.train_start_cutoff and (episode + 1) % 10 == 0:
                 self._train()
 
-        # Show final result
+        # Show final result with recording
+        self.recoded_episode = episode + 1
+        self.env.reset()
         self.env.render()
 
     def _play_game(self, episode):
@@ -93,7 +98,7 @@ class Game:
                 self._show_cntdown = 2
 
                 print("============================================")
-                print(" Steps passed over {}. We will self._show 3 times".format(show_cutoff))
+                print(" Steps passed over {}. We will show 3 times".format(show_cutoff))
                 print(" Please press ENTER.")
                 print("============================================")
 
